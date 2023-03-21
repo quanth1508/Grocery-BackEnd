@@ -1,19 +1,19 @@
-const mongoose = require("mongoose");
+'use strict'
+import mongoose from "mongoose"
 
-const Product = mongoose.model(
-    "Product",
-    new mongoose.Schema({
-        images: [String],
-        barCode: String,
-        name: String,
-        quantity: Int,
-        weight: Double,
-        inputPrice: Double,
-        outputPrice: Double,
-        hsd: Date,
-        desc: String,
-        createTime: Date = Date()
-    })
-);
+const OrderSchema = new mongoose.Schema({
+    images: [String],
+    barCode: String,
+    name: String,
+    quantity: Number,
+    weight: Number,
+    inputPrice: Number,
+    outputPrice: Number,
+    hsd: Date,
+    desc: String
+}, {
+    collection: 'Product',
+    timestamps: true
+})
 
-module.exports = Product;
+export default mongoose.model("Product", OrderSchema, "Product")

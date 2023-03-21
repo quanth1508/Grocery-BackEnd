@@ -1,15 +1,18 @@
-const config = require("../config/auth.config");
-const db = require("../models");
-const User = db.user;
-const Role = db.role;
-var jwt = require("jsonwebtoken");
-var bcrypt = require("bcryptjs");
+import secret  from "../config/auth.config.js";
+import User from "../models/user.model.js";
+import Role from "../models/role.model.js";
+const ROLES  = ["user", "admin", "moderator"];
+import jsonwebtoken from 'jsonwebtoken';
+const { sign } = jsonwebtoken;
 
-exports.signup = (req, res) => {
+import pkg from 'bcryptjs';
+const { hashSync, compareSync } = pkg;
+
+export function signup(req, res) {
   const user = new User({
     username: req.body.username,
     email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 8),
+    password: hashSync(req.body.password, 8),
     avatar: req.body.avatar,
   });
 
@@ -69,9 +72,9 @@ exports.signup = (req, res) => {
       });
     }
   });
-};
+}
 
-exports.signin = (req, res) => {
+export function signin(req, res) {
   User.findOne({
     username: req.body.username
   })
@@ -92,7 +95,7 @@ exports.signin = (req, res) => {
         });
       }
 
-      var passwordIsValid = bcrypt.compareSync(
+      var passwordIsValid = compareSync(
         req.body.password,
         user.password
       );
@@ -105,7 +108,7 @@ exports.signin = (req, res) => {
         });
       }
 
-      var token = jwt.sign({ id: user.id }, config.secret, {
+      var token = sign({ id: user.id }, secret, {
         expiresIn: 86400 // 24 hours
       });
 
@@ -127,4 +130,4 @@ exports.signin = (req, res) => {
       }
       );
     });
-};
+}

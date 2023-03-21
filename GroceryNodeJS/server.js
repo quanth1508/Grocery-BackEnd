@@ -1,9 +1,12 @@
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const path = require('path');
-const fs = require("fs");
-const multer = require("multer");
+import express, { json, urlencoded, static as s } from "express";
+import cors from "cors";
+// import { urlencoded as _urlencoded } from "body-parser";
+import pkg from 'body-parser';
+const { urlencoded: _urlencoded } = pkg;
+import { extname } from 'path';
+import { readFileSync } from "fs";
+import multer, { diskStorage } from "multer";
+import mongoose from "mongoose";
 
 const app = express();
 
@@ -11,21 +14,23 @@ var consOptions = {
     origin: "http://localhost:8081"
 };
 
-var imageModel = require('./app/models/imageModel');
+import image from './app/models/imageModel.js';
 
 app.use(cors(consOptions));
 
-app.use(express.json());
+app.use(json());
 
-app.use(express.urlencoded({ extended: true }));
+app.use(urlencoded({ extended: true }));
 
 // simple route
 app.get("/", (req, res) => {
     return res.json( { message: "Welcome" });
 });
 
-require('./app/routes/auth.routes')(app);
-require('./app/routes/user.routes')(app);
+import authRoutes from './app/routes/auth.routes.js'
+import productRoutes from './app/routes/product.routes.js'
+app.use(authRoutes);
+app.use(productRoutes);
 
 // set port, listen request
 const PORT = process.env.PORT || 8080;
@@ -33,13 +38,13 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 });
 
-const db = require("./app/models");
-const Role = db.role;
-const dbConfig = require("./app/config/db.config");
+import role from "./app/models/role.model.js";
+const Role = role;
+import { HOST, PORT as _PORT, DB } from "./app/config/db.config.js";
 
-db.mongoose.set('strictQuery', false);
-db.mongoose
-    .connect(`mongodb://${dbConfig.HOST}:${dbConfig.PORT}/${dbConfig.DB}`, {
+mongoose.set('strictQuery', false);
+mongoose
+    .connect(`mongodb://${HOST}:${_PORT}/${DB}`, {
         useNewUrlParser: true
     })
     .then(() => {
@@ -86,22 +91,26 @@ function initial() {
         });
 }
 
-app.use(bodyParser.urlencoded(
+function getDB() {
+  return _db;
+}
+
+app.use(_urlencoded(
   { extended:true }
 ))
 
 app.set("view engine","ejs");
 
 // SET STORAGE
-app.use(express.static('public'));
+app.use(s('public'));
 
 let imageName = "";
-const storage = multer.diskStorage({
+const storage = diskStorage({
   destination: function(req, file, cb) {
     cb(null, `${process.cwd()}/public/assets`);
   },
   filename: function(req, file, cb) {
-    imageName = Date.now() + path.extname(file.originalname);
+    imageName = Date.now() + extname(file.originalname);
     cb(null, imageName);
   }
 });
@@ -111,14 +120,14 @@ app.get("/assets",(req,res)=>{
   res.sendFile(`${process.cwd()}/public/assets/${req.path}`)
 })
 
-app.post("/uploadphoto", upload.single('image'),(req, res) => {
-  var img = fs.readFileSync(req.file.path);
+app.post("/api/v1/uploadphoto", upload.single('image'),(req, res) => {
+  var img = readFileSync(req.file.path);
   var encode_img = img.toString('base64');
   var final_img = {
       contentType:req.file.mimetype,
       image: new Buffer(encode_img, 'base64')
   };
-  imageModel.create(final_img,function(err,result) {
+  create(final_img,function(err,result) {
       if (err) {
         res.status(500).send({
           success: false,

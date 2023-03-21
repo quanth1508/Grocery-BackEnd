@@ -1,6 +1,6 @@
-var mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
  
-var imageSchema = new mongoose.Schema({
+var imageSchema = new Schema({
     name: String,
     desc: String,
     img:
@@ -12,4 +12,4 @@ var imageSchema = new mongoose.Schema({
  
 //Image is a model which has a schema imageSchema
  
-module.exports = new mongoose.model('Image', imageSchema);
+export default new model('Image', imageSchema);

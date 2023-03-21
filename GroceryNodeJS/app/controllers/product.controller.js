@@ -1,23 +1,25 @@
-const config = require("../config/auth.config");
-const db = require("../models");
-const User = db.user;
-const Role = db.role;
-const Product = db.product
-var jwt = require("jsonwebtoken");
-var bcrypt = require("bcryptjs");
-import { verifyToken } from "../middlewares/authJwt";
+import config from "../config/auth.config.js";
+import User from "../models/user.model.js";
+import Role from "../models/role.model.js";
+const ROLES  = ["user", "admin", "moderator"];
+import Product from "../models/product.model.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import dayjs from "dayjs";
 
 async function createProduct(req, res) {
+    console.log(req.body.hsd);
+    var day = new dayjs(req.body.hsd);
     const product = new Product({
-        images: req.images,
-        barCode: req.barCode,
-        name: req.name,
-        quantity: req.quantity,
-        weight: req.weight,
-        inputPrice: req.inputPrice,
-        outputPrice: req.outputPrice,
-        hsd: req.hsd,
-        desc: req.desc
+        images: req.body.images,
+        barCode: req.body.barCode,
+        name: req.body.name,
+        quantity: req.body.quantity,
+        weight: req.body.weight,
+        inputPrice: req.body.inputPrice,
+        outputPrice: req.body.outputPrice,
+        hsd: day,
+        desc: req.body.desc
     })
 
     product.save((error, product) => {
@@ -34,20 +36,18 @@ async function createProduct(req, res) {
             message: "Tạo sản phẩm thành công"
         })
     })
-}
+};
 
 async function getListProduct(req, res) {
-    let result = Product
-        .find()
-        .sort({ createTime: -1 })
-
+    let findAll = await Product.find({ });
+    console.log(findAll);
     res.status(200).send({
         success: true,
-        data: result
+        data: findAll
     })
-}
+};
 
-export {
+export default {
     createProduct,
     getListProduct
 }

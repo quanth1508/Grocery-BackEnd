@@ -1,26 +1,33 @@
-const jwt = require("jsonwebtoken");
-const config = require("../config/auth.config.js");
-const db = require("../models");
-const User = db.user;
-const Role = db.role;
+import { verify } from "jsonwebtoken";
+import secret from "../config/auth.config.js";
 
-verifyToken = (req, res, next) => {
-  let token = req.headers["Authorization"];
+import User from "../models/user.model.js";
+import Role from "../models/role.model.js";
+const ROLES  = ["user", "admin", "moderator"];
 
-  if (!token) {
-    return res.status(403).send({ message: "No token provided!" });
+function verifyToken(req, res, next) {
+  var bearerToken = req.headers['authorization'] || req.headers['x-access-token'];
+  const token = String(bearerToken).split(' ')[1];
+  if (token) {
+    verify(token, secret, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ 
+            success: false,
+            message: "Unauthorized!" 
+          });return res.status(401).send
+        }
+        req.decoded = decoded;
+        next();
+    });
+  } else {
+    return res.json({
+      success: false,
+      message: 'Không tồn tại token'
+    });
   }
-
-  jwt.verify(token, config.secret, (err, decoded) => {
-    if (err) {
-      return res.status(401).send({ message: "Unauthorized!" });
-    }
-    req.userId = decoded.id;
-    next();
-  });
 };
 
-isAdmin = (req, res, next) => {
+function isAdmin(req, res, next) {
   User.findById(req.userId).exec((err, user) => {
     if (err) {
       res.status(500).send({ message: err });
@@ -51,7 +58,7 @@ isAdmin = (req, res, next) => {
   });
 };
 
-isModerator = (req, res, next) => {
+function isModerator(req, res, next) {
   User.findById(req.userId).exec((err, user) => {
     if (err) {
       res.status(500).send({ message: err });
@@ -87,4 +94,4 @@ const authJwt = {
   isAdmin,
   isModerator
 };
-module.exports = authJwt;
+export default authJwt;
