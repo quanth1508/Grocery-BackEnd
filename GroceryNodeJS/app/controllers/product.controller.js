@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 
 async function createProduct(req, res) {
     console.log(req.body.hsd);
-    var day = new dayjs(req.body.hsd);
+    var day = new day(req.body.hsd);
     const product = new Product({
         images: req.body.images,
         barCode: req.body.barCode,
@@ -40,7 +40,6 @@ async function createProduct(req, res) {
 
 async function getListProduct(req, res) {
     let findAll = await Product.find({ });
-    console.log(findAll);
     res.status(200).send({
         success: true,
         data: findAll
