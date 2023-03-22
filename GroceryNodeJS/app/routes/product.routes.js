@@ -17,4 +17,22 @@ productRouter.post(
   productController.createProduct
 );
 
+productRouter.get(
+  "/api/v1/product/search",
+  [authJwt.verifyToken],
+  productController.getListProductSearch
+)
+
+productRouter.post(
+  "/api/v1/product/delete",
+  [authJwt.verifyToken],
+  productController.deleteProduct
+)
+
+productRouter.post(
+  "/api/v1/product/update",
+  [authJwt.verifyToken],
+  productController.updateProduct
+)
+
 export default productRouter;

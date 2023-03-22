@@ -2,6 +2,7 @@
 import mongoose from "mongoose"
 
 const OrderSchema = new mongoose.Schema({
+    id: String,
     images: [String],
     barCode: String,
     name: String,
