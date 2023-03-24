@@ -16,21 +16,31 @@ async function createProduct(req, res) {
                 throw THQError("Thiếu trường thông tin!")
             }
 
-            var day = new dayjs(req.body.hsd);
-            const product = new Product({
-                id: uuidv4(),
-                images: req.body.images,
-                barCode: req.body.barCode,
-                name: req.body.name,
-                quantity: req.body.quantity,
-                weight: req.body.weight,
-                inputPrice: req.body.inputPrice,
-                outputPrice: req.body.outputPrice,
-                hsd: day,
-                desc: req.body.desc
-            })
+            await Product.findOne(
+                {
+                    barCode: req.body.barCode
+                }
+            )
+            .then(async response => {
+                if (response) {
+                    throw THQError("Mã vạch sản phẩm đã tồn tại vui lòng tìm kiếm kiểm tra và chỉnh sửa")
+                }
 
-            product.save((error, product) => {
+                var day = new dayjs(req.body.hsd);
+                const product = new Product({
+                    id: uuidv4(),
+                    images: req.body.images,
+                    barCode: req.body.barCode,
+                    name: req.body.name,
+                    quantity: req.body.quantity,
+                    weight: req.body.weight,
+                    inputPrice: req.body.inputPrice,
+                    outputPrice: req.body.outputPrice,
+                    hsd: day,
+                    desc: req.body.desc
+                })
+
+                product.save((error, product) => {
                     if (error) {
                         res.status(500).send({
                             success: false,
@@ -44,6 +54,23 @@ async function createProduct(req, res) {
                         message: "Tạo sản phẩm thành công"
                     });
                 })
+            })
+            .catch( error => {
+                if (error instanceof THQError) {
+                    res.send(new Response(
+                        false,
+                        error.message,
+                        null
+                    ))
+                    return
+                }
+
+                res.send(new Response(
+                    false,
+                    "Mã vạch sản phẩm đã tồn tại vui lòng tìm kiếm kiểm tra và chỉnh sửa",
+                    null
+                ))
+            })
         } catch {
             res.send(Response.defaultFailure)
         }
@@ -146,11 +173,43 @@ async function updateProduct(req, res) {
     }
 }
 
+async function findProduct(req, res) {
+    try {
+        if (!req.query) {
+            throw THQError.defaultFailure
+        }
+
+        let product = await Product.findOne(
+            {
+                barCode: req.query.barCode
+            }
+        )
+
+        if (!product) {
+            res.send(new Response(
+                false,
+                "Sản phẩm chưa được thêm vào kho, vui lòng thêm vào kho hàng",
+                null
+            ))
+        }
+
+        res.status(200).send(new Response(
+            true,
+            "Thanh cong",
+            product
+        ))
+
+    } catch {
+        res.send(Response.defaultFailure)
+    }
+}
+
 
 export default {
     createProduct,
     getListProduct,
     getListProductSearch,
     deleteProduct,
-    updateProduct
+    updateProduct,
+    findProduct
 }

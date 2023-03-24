@@ -35,4 +35,10 @@ productRouter.post(
   productController.updateProduct
 )
 
+productRouter.get(
+  "/api/v1/product/find-one",
+  [authJwt.verifyToken],
+  productController.findProduct
+)
+
 export default productRouter;
