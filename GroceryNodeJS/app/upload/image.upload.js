@@ -7,6 +7,7 @@ import Response from '../utils/Response.Class.js';
 import ErrorHelper from '../helpers/error.helper.js'
 import { readFileSync } from "fs";
 import imageModel from '../models/imageModel.js';
+import { BASEURL } from "../config/db.config.js"
 
 async function uploadImage(req, res) {
     var img = readFileSync(req.file.path);
@@ -27,7 +28,7 @@ async function uploadImage(req, res) {
             res.status(200).send({
                 success: true,
                 data: {
-                  url: "http://localhost:8080/assets/" + req.file.filename 
+                  url: `${BASEURL}/assets/` + req.file.filename 
                 }
             })
         }

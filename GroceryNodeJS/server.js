@@ -3,15 +3,18 @@ import cors from "cors";
 import pkg from 'body-parser';
 const { urlencoded: _urlencoded } = pkg;
 import mongoose from "mongoose";
+import { BASEURL } from "./app/config/db.config.js";
 import image from './app/models/imageModel.js';
 import authRoutes from './app/routes/auth.routes.js'
 import productRoutes from './app/routes/product.routes.js'
 import uploadRouter from "./app/routes/upload.routes.js";
+import bankRoutes from "./app/routes/bank.routes.js";
+
 
 const app = express();
 
 var consOptions = {
-    origin: "http://localhost:8081"
+    origin: `${BASEURL}:8080`
 };
 
 app.use(cors(consOptions));
@@ -20,6 +23,7 @@ app.use(urlencoded({ extended: true }));
 app.use(authRoutes)
 app.use(productRoutes)
 app.use(uploadRouter)
+app.use(bankRoutes)
 app.use(_urlencoded(
   { extended:true }
 ))
