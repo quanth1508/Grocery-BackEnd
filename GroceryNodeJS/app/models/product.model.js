@@ -11,7 +11,8 @@ const OrderSchema = new mongoose.Schema({
     inputPrice: Number,
     outputPrice: Number,
     hsd: Date,
-    desc: String
+    desc: String,
+    sold: Number
 }, {
     collection: 'Product',
     timestamps: true

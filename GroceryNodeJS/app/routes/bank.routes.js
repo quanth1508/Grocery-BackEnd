@@ -34,4 +34,11 @@ bankRoutes.post(
     vietqrController.genQRCodeQuickLink
 )
 
+bankRoutes.post(
+    "/api/v1/payment/confirm",
+    [authJwt.verifyToken],
+    vietqrController.payment
+)
+
+
 export default bankRoutes

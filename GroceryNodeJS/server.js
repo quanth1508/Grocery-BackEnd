@@ -9,6 +9,7 @@ import authRoutes from './app/routes/auth.routes.js'
 import productRoutes from './app/routes/product.routes.js'
 import uploadRouter from "./app/routes/upload.routes.js";
 import bankRoutes from "./app/routes/bank.routes.js";
+import transactionRoutes from "./app/routes/transaction.routes.js";
 
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(authRoutes)
 app.use(productRoutes)
 app.use(uploadRouter)
 app.use(bankRoutes)
+app.use(transactionRoutes)
 app.use(_urlencoded(
   { extended:true }
 ))

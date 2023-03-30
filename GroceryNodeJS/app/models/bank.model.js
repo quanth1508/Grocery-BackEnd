@@ -6,7 +6,7 @@ const BankSchema = new mongoose.Schema({
     accountName: String,
     accountNumber: String,
     logo: String,
-    short_name: String,
+    shortName: String,
     name: String,
     code: String
 }, {
