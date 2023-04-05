@@ -13,3 +13,4 @@ var imageSchema = new Schema({
 //Image is a model which has a schema imageSchema
  
 export default new model('Image', imageSchema);
+ 

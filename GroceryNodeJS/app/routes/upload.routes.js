@@ -31,7 +31,6 @@ uploadRouter.use(
         try {
             res.sendFile(`${process.cwd()}/public/assets/${req.path}`)
         } catch {
-
         }
     }
 )
