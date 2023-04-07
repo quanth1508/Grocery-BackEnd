@@ -11,4 +11,17 @@ statisticRoutes.get(
     statisticController.getStatisticRevenue
 )
 
+statisticRoutes.get(
+    "/api/v1/statistic/capitalAndRevenue",
+    [authJwt.verifyToken],
+    statisticController.getCapitalAndRevenue
+)
+
+statisticRoutes.get(
+    "/api/v1/statistic/numberOfTransaction",
+    [authJwt.verifyToken],
+    statisticController.getNumberOfTransaction
+)
+
+
 export default statisticRoutes

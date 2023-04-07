@@ -5,6 +5,7 @@ const TransactionSchema = new mongoose.Schema({
     id: String,
     products: { type: Array, default: [] },
     quantities: { type: Array, default: [] },
+    initialCapital: Number,
     paymentMoney: Number,
     discountMoney: Number,
     paymentType: Number
