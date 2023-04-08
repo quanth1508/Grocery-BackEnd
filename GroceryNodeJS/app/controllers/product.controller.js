@@ -14,7 +14,7 @@ async function createProduct(req, res) {
         try {
             if (!req.body) {
                 throw THQError("Thiếu trường thông tin!")
-            }
+            } 
 
             await Product.findOne(
                 {
@@ -37,7 +37,8 @@ async function createProduct(req, res) {
                     inputPrice: req.body.inputPrice,
                     outputPrice: req.body.outputPrice,
                     hsd: day,
-                    desc: req.body.desc
+                    desc: req.body.desc,
+                    expiredMilliseconds: day.getTime() - (new Date().getTime())
                 })
 
                 product.save((error, product) => {

@@ -459,9 +459,95 @@ async function getNumberOfTransaction(req, res) {
     }
 }
 
+async function getTopSeller(req, res) {
+    try {
+        if (!req.query) {
+            throw THQError("Khong co du lieu")
+        }
+
+        let result = await productModel.aggregate([
+            {
+                $match: { }
+            },
+            {
+                $group: {
+                    _id : "$id",
+                    expiredMilliseconds: {
+                        $sum: "$expiredMilliseconds"
+                    },
+                    
+                }
+            },
+            {
+                $sort: {
+                    sold: 1
+                }
+            }
+        ])
+
+        var topSeller = []
+        for(let i = 0; i < result.length; i++) {
+            topSeller[i] = await productModel.findOne({ id: result[i]._id })
+        }
+
+        res.status(200).send(new Response(
+            true,
+            "Thanh cong",
+            topSeller
+        ))
+
+    } catch (error) {
+        errorHelper.sendError(res, getTopSeller, error)
+    }
+}
+
+async function getTopExpired(req, res) {
+    try {
+        if (!req) {
+            throw THQError("Khong co du lieu")
+        }
+
+        let result = await productModel.aggregate([
+            {
+                $match: { }
+            },
+            {
+                $group: {
+                    _id : "$id",
+                    miniseconds: {
+                        $sum: "$expiredMilliseconds"
+                    },
+                    
+                }
+            },
+            {
+                $sort: {
+                    miniseconds: -1
+                }
+            }
+        ])
+
+        var topSeller = []
+        for(let i = 0; i < result.length; i++) {
+            topSeller[i] = await productModel.findOne({ id: result[i]._id })
+        }
+
+        res.status(200).send(new Response(
+            true,
+            "Thanh cong",
+            topSeller
+        ))
+
+    } catch (error) {
+        errorHelper.sendError(res, getTopExpired, error)
+    }
+}
+
 
 export default {
     getStatisticRevenue,
     getCapitalAndRevenue,
     getNumberOfTransaction,
+    getTopSeller,
+    getTopExpired,
 }
