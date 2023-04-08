@@ -12,7 +12,8 @@ const OrderSchema = new mongoose.Schema({
     outputPrice: Number,
     hsd: Date,
     desc: String,
-    sold: Number
+    sold: Number,
+    expiredMilliseconds: Number
 }, {
     collection: 'Product',
     timestamps: true

@@ -193,6 +193,7 @@ async function payment(req, res) {
             id: uuidv4(),
             products: _products,
             quantities: quantitiesPayment,
+            initialCapital: initialCapital,
             paymentMoney: req.body.paymentMoney,
             discountMoney: req.body.discountMoney
         }
