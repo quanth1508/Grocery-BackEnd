@@ -13,7 +13,11 @@ const OrderSchema = new mongoose.Schema({
     hsd: Date,
     desc: String,
     sold: Number,
-    expiredMilliseconds: Number
+    expiredMilliseconds: Number,
+    hsdType: Number,
+    hsdDay: Number,
+    hsdWeek: Number,
+    hsdMonth: Number,
 }, {
     collection: 'Product',
     timestamps: true
