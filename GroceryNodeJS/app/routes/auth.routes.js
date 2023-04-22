@@ -7,8 +7,7 @@ const loginRouter = new Router();
 loginRouter.post(
   "/api/v1/auth/signup",
   [
-    verifySignUp.checkDuplicateUsernameOrEmail,
-    verifySignUp.checkRolesExisted
+    verifySignUp.checkDuplicateUsernameOrEmail
   ],
   signup
 );

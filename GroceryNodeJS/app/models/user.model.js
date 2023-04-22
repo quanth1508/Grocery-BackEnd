@@ -1,19 +1,23 @@
+'use strict'
+import mongoose from "mongoose";
 import { model, Schema } from "mongoose";
 
-const User = model(
-  "User",
-  new Schema({
-    username: String,
-    email: String,
-    password: String,
-    roles: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Role"
-      }
-    ],
-    avatar: String,
-  })
-);
+const UserScheme = new mongoose.Schema({
+  name: String,
+  phone: String,
+  password: String,
+  bio: String,
+  avatar: String,
+  roles: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Role"
+    }
+  ],
 
-export default User;
+}, {
+  collection: "User",
+  timestamps: true
+})
+
+export default mongoose.model("user", UserScheme, "users")
