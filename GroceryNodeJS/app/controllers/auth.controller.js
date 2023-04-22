@@ -1,6 +1,9 @@
 import secret  from "../config/auth.config.js";
 import User from "../models/user.model.js";
 import Role from "../models/role.model.js";
+import Response from "../utils/Response.Class.js";
+import THQError from "../utils/THQError.Class.js";
+import errorHelper from "../helpers/error.helper.js";
 const ROLES  = ["user", "admin", "moderator"];
 import jsonwebtoken from 'jsonwebtoken';
 const { sign } = jsonwebtoken;
@@ -10,10 +13,11 @@ const { hashSync, compareSync } = pkg;
 
 export function signup(req, res) {
   const user = new User({
-    username: req.body.username,
-    email: req.body.email,
+    name: req.body.name,
+    phone: req.body.phone,
     password: hashSync(req.body.password, 8),
-    avatar: req.body.avatar,
+    bio: req.body.bio,
+    avatar: req.body.avatar,    
   });
 
   user.save((err, user) => {
@@ -75,11 +79,23 @@ export function signup(req, res) {
 }
 
 export function signin(req, res) {
+  try {
+    if (!req.body) {
+        throw THQError("Thiếu trường thông tin!")
+    } 
+
   User.findOne({
-    username: req.body.username
+    phone: req.body.username
   })
-    .populate("roles", "-__v")
-    .exec((err, user) => {
+  .populate("roles", "-__v")
+  .exec((err, user) => {
+      if (!user) {
+        return res.status(404).send({ 
+          success: false,
+          message: "Không tìm thấy thông tin tài khoản." 
+        });
+      }
+
       if (err) {
         res.status(500).send({
           success: false,
@@ -88,12 +104,7 @@ export function signin(req, res) {
         return;
       }
 
-      if (!user) {
-        return res.status(404).send({ 
-          success: false,
-          message: "User Not found." 
-        });
-      }
+
 
       var passwordIsValid = compareSync(
         req.body.password,
@@ -104,12 +115,12 @@ export function signin(req, res) {
         return res.status(401).send({
           success: false,
           accessToken: null,
-          message: "Invalid Password!"
+          message: "Mật khẩu không chính xác."
         });
       }
 
       var token = sign({ id: user.id }, secret, {
-        expiresIn: 86400 // 24 hours
+        expiresIn: 86400 * 30 // expired 1 month token
       });
 
       var authorities = [];
@@ -117,17 +128,22 @@ export function signin(req, res) {
       for (let i = 0; i < user.roles.length; i++) {
         authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
       }
+      console.log(user)
       res.status(200).send({
         success: true,
         data: {
             id: user._id,
-            username: user.username,
-            email: user.email,
+            name: user.name,
+            phone: user.phone,
             roles: authorities,
-            accessToken: token,
-            avatar: user.avatar
+            bio: user.bio,
+            avatar: user.avatar,
+            token: token,
         }
       }
       );
-    });
+  });
+} catch (error) {
+  errorHelper.sendError(res, signin, error)
+}
 }

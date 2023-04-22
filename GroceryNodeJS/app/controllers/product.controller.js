@@ -22,11 +22,14 @@ async function createProduct(req, res) {
                 }
             )
             .then(async response => {
-                if (response) {
-                    throw THQError("Mã vạch sản phẩm đã tồn tại vui lòng tìm kiếm kiểm tra và chỉnh sửa")
-                }
+                // if (response) {
+                //     throw THQError("Mã vạch sản phẩm đã tồn tại vui lòng tìm kiếm kiểm tra và chỉnh sửa")
+                // }
 
-                var day = new dayjs(req.body.hsd);
+                var hsd = new dayjs(req.body.hsd);
+                let dayCurrent = new Date()
+                let expiredMilliseconds = hsd.toDate().getTime() - dayCurrent.getTime()
+
                 const product = new Product({
                     id: uuidv4(),
                     images: req.body.images,
@@ -36,9 +39,13 @@ async function createProduct(req, res) {
                     weight: req.body.weight,
                     inputPrice: req.body.inputPrice,
                     outputPrice: req.body.outputPrice,
-                    hsd: day,
+                    hsd: hsd,
                     desc: req.body.desc,
-                    expiredMilliseconds: day.getTime() - (new Date().getTime())
+                    expiredMilliseconds: expiredMilliseconds,
+                    hsdType: req.body.hsdType,
+                    hsdDay: req.body.hsdDay,
+                    hsdWeek: req.body.hsdWeek,
+                    hsdMonth: req.body.hsdMonth,
                 })
 
                 product.save((error, product) => {

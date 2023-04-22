@@ -236,7 +236,7 @@ async function getCapitalAndRevenue(req, res) {
               { 
                   $group: {
                       _id: { "year_month": { $substrCP: [ "$createdAt", 0, 7 ] } }, 
-                      count: { $sum: 1 }
+                      count: { $sum: "$initialCapital" }
                   } 
               },
               {
@@ -353,6 +353,7 @@ async function getNumberOfTransaction(req, res) {
     let YEAR_BEFORE = req.query.yearBeforeString // "2022-04-07T00:00:00"
 
     const result = await transactionModel.aggregate( [{ 
+        // filter all results
       $match: { }
     },
     { 
@@ -480,7 +481,7 @@ async function getTopSeller(req, res) {
             },
             {
                 $sort: {
-                    sold: 1
+                    sold: -1
                 }
             }
         ])
@@ -522,7 +523,7 @@ async function getTopExpired(req, res) {
             },
             {
                 $sort: {
-                    miniseconds: -1
+                    miniseconds: 1
                 }
             }
         ])
