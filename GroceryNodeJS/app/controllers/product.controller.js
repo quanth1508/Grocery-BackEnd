@@ -6,9 +6,12 @@ import Product from "../models/product.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import dayjs from "dayjs";
-import Response from "../utils/Response.Class.js";
-import THQError from "../utils/THQError.Class.js";
+import Response from "../utils/Response.Class.js"
+import THQError from "../utils/THQError.Class.js"
 import { v4 as uuidv4 } from 'uuid'
+import errorHelper from "../helpers/error.helper.js";
+import secret from "../config/auth.config.js";
+import userIdFromReq from "../helpers/user.helper.js";
 
 async function createProduct(req, res) {
         try {
@@ -22,31 +25,16 @@ async function createProduct(req, res) {
                 }
             )
             .then(async response => {
-                // if (response) {
-                //     throw THQError("Mã vạch sản phẩm đã tồn tại vui lòng tìm kiếm kiểm tra và chỉnh sửa")
-                // }
-
                 var hsd = new dayjs(req.body.hsd);
                 let dayCurrent = new Date()
                 let expiredMilliseconds = hsd.toDate().getTime() - dayCurrent.getTime()
+                let user_id = userIdFromReq(req) 
 
-                const product = new Product({
-                    id: uuidv4(),
-                    images: req.body.images,
-                    barCode: req.body.barCode,
-                    name: req.body.name,
-                    quantity: req.body.quantity,
-                    weight: req.body.weight,
-                    inputPrice: req.body.inputPrice,
-                    outputPrice: req.body.outputPrice,
-                    hsd: hsd,
-                    desc: req.body.desc,
-                    expiredMilliseconds: expiredMilliseconds,
-                    hsdType: req.body.hsdType,
-                    hsdDay: req.body.hsdDay,
-                    hsdWeek: req.body.hsdWeek,
-                    hsdMonth: req.body.hsdMonth,
-                })
+                var product = req.body
+                product.id = uuidv4()
+                product.hsd = hsd
+                product.expiredMilliseconds = expiredMilliseconds
+                product.user_id = user_id
 
                 product.save((error, product) => {
                     if (error) {
@@ -79,40 +67,57 @@ async function createProduct(req, res) {
                     null
                 ))
             })
-        } catch {
-            res.send(Response.defaultFailure)
+        } catch (error) {
+            errorHelper.sendError(res, createProduct, error)
         }
 };
 
 async function getListProduct(req, res) {
-    let findAll = await Product.find({ });
-    res.status(200).send({
-        success: true,
-        data: findAll
-    })
+    try {
+        let user_id = userIdFromReq(req)
+        let objFilter = {
+            user_id: user_id
+        }
+        let produts = await (await Product.find(objFilter)).filter(function(product) {
+            return product.id != ""
+        })
+
+        res.status(200).send({
+            success: true,
+            data: produts
+        })
+    } catch (error) {
+        errorHelper.sendError(res, getListProduct, error)
+    }
 };
 
 async function getListProductSearch(req, res) {
     try {
         let keyword = req.query.keyword || ""
-        
+        let user_id = userIdFromReq(req)
+
         let resultName = await Product.find({
-            "name": {
+            name: {
                 $regex: new RegExp(`.*${keyword}.*`, "i")
-            }
+            },
+            user_id: user_id
         })
 
         let resultBarcode = await Product.find({
-            "barCode": {
-                $regex: new RegExp(`.*${keyword}.*`, "i")
-            }
+            barCode: {
+                $regex: new RegExp(`.*${keyword}.*`, "i"),
+            },
+            user_id: user_id
         })
 
         var items = [...new Set(resultName.concat(resultBarcode))]
         const keys = ['id', 'barCode']
         const filteredData = items.filter((value, index, self) => 
             self.findIndex(v => keys.every(k => v[k] === value[k])) === index
-        );
+        )
+        .filter(function(product) {
+            return product.id != ""
+        })
 
         res.status(200).send(new Response(
             true,
@@ -130,10 +135,12 @@ async function deleteProduct(req, res) {
         if (!req.body) {
             throw THQError("Thiếu trường thông tin!")
         }
-
+        let user_id = userIdFromReq(req)
         let id = req.body.id
+
         await Product.findOneAndRemove({ 
-            "id": id
+            id: id,
+            user_id: user_id
          })
 
          res.status(200).send(new Response(
@@ -153,7 +160,10 @@ async function updateProduct(req, res) {
             throw THQError("Thiếu trường thông tin!")
         }
 
-        let product = req.body
+        let user_id = userIdFromReq(req)
+
+        var product = req.body
+        product.user_id = user_id
 
         let updatedProduct = await Product.findOneAndUpdate(
             {
@@ -161,8 +171,8 @@ async function updateProduct(req, res) {
             },
             product,
             {
-                upsert: true,
-                new: true
+                upsert: false,
+                new: false
             }
         )
 
@@ -186,10 +196,12 @@ async function findProduct(req, res) {
         if (!req.query) {
             throw THQError.defaultFailure
         }
+        let user_id = userIdFromReq(req)
 
         let product = await Product.findOne(
             {
-                barCode: req.query.barCode
+                barCode: req.query.barCode,
+                user_id: user_id
             }
         )
 

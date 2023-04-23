@@ -18,6 +18,7 @@ const OrderSchema = new mongoose.Schema({
     hsdDay: Number,
     hsdWeek: Number,
     hsdMonth: Number,
+    user_id: String
 }, {
     collection: 'Product',
     timestamps: true

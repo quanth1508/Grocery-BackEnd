@@ -14,7 +14,7 @@ const UserScheme = new mongoose.Schema({
       ref: "Role"
     }
   ],
-
+  user_id: String,
 }, {
   collection: "User",
   timestamps: true

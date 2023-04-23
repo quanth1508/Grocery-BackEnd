@@ -8,7 +8,8 @@ const TransactionSchema = new mongoose.Schema({
     initialCapital: Number,
     paymentMoney: Number,
     discountMoney: Number,
-    paymentType: Number
+    paymentType: Number,
+    user_id: String
 }, {
     collection: "Transaction",
     timestamps: true

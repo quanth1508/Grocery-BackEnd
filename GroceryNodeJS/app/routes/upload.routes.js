@@ -6,6 +6,7 @@ import process from "process"
 import { extname } from 'path';
 import multer, { diskStorage } from "multer";
 import { readFileSync } from "fs";
+import errorHelper from "../helpers/error.helper.js";
 
 const storage = diskStorage({
     destination: function(req, file, cb) {
@@ -30,7 +31,8 @@ uploadRouter.use(
     async (req, res) => {
         try {
             res.sendFile(`${process.cwd()}/public/assets/${req.path}`)
-        } catch {
+        } catch (error) {
+            errorHelper.sendError(res, )
         }
     }
 )
