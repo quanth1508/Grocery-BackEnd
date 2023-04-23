@@ -8,7 +8,8 @@ const BankSchema = new mongoose.Schema({
     logo: String,
     shortName: String,
     name: String,
-    code: String
+    code: String,
+    user_id: String,
 }, {
     collection: 'bank',
     timestamps: true

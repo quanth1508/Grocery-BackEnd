@@ -4,6 +4,8 @@ import transactionModel from "../models/transaction.model.js";
 import errorHelper from "../helpers/error.helper.js";
 import productModel from "../models/product.model.js";
 import dayjs from "dayjs";
+import userIdFromReq from "../helpers/user.helper.js";
+
 
 async function getStatisticRevenue(req, res) {
     try {
@@ -16,9 +18,12 @@ async function getStatisticRevenue(req, res) {
     const MONTHS_ARRAY = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12' ]
     let TODAY = req.query.yearString //"2023-04-07T00:00:00"
     let YEAR_BEFORE = req.query.yearBeforeString // "2022-04-07T00:00:00"
+    let user_id = userIdFromReq(req)
 
     const result = await transactionModel.aggregate( [{ 
-      $match: { }
+      $match: {
+        user_id: user_id
+       }
     },
     { 
         $group: {
@@ -134,9 +139,12 @@ async function getCapitalAndRevenue(req, res) {
         const MONTHS_ARRAY = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12' ]
         let TODAY = req.query.yearString //"2023-04-07T00:00:00"
         let YEAR_BEFORE = req.query.yearBeforeString // "2022-04-07T00:00:00"
+        let user_id = userIdFromReq(req)
     
         const result1 = await transactionModel.aggregate( [{ 
-          $match: { }
+          $match: { 
+            user_id: user_id
+          }
         },
         { 
             $group: {
@@ -351,10 +359,13 @@ async function getNumberOfTransaction(req, res) {
     const MONTHS_ARRAY = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12' ]
     let TODAY = req.query.yearString //"2023-04-07T00:00:00"
     let YEAR_BEFORE = req.query.yearBeforeString // "2022-04-07T00:00:00"
+    let user_id = userIdFromReq(req)
 
     const result = await transactionModel.aggregate( [{ 
         // filter all results
-      $match: { }
+      $match: { 
+        user_id: user_id
+      }
     },
     { 
         $group: {
@@ -465,10 +476,12 @@ async function getTopSeller(req, res) {
         if (!req.query) {
             throw THQError("Khong co du lieu")
         }
-
+        let user_id = userIdFromReq(req)
         let result = await productModel.aggregate([
             {
-                $match: { }
+                $match: {
+                    user_id: user_id
+                }
             },
             {
                 $group: {
@@ -507,10 +520,13 @@ async function getTopExpired(req, res) {
         if (!req) {
             throw THQError("Khong co du lieu")
         }
+        let user_id = userIdFromReq(req)
 
         let result = await productModel.aggregate([
             {
-                $match: { }
+                $match: { 
+                    user_id: user_id
+                }
             },
             {
                 $group: {

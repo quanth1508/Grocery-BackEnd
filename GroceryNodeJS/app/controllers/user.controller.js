@@ -5,18 +5,21 @@ import User from "../models/user.model.js";
 import { v4 as uuidv4 } from 'uuid'
 import jsonwebtoken from 'jsonwebtoken';
 import secret from "../config/auth.config.js";
+import userIdFromReq from "../helpers/user.helper.js";
 
 
 async function getShopInfo(req, res) {
     try {
-
         if (!req.query) {
             throw THQError("Không tìm thấy thông tin shop!")
         }
+        let user_id = userIdFromReq(req)
+        console.log(`test: ${user_id}`)
 
         let shop = await User.findOne( {
-            phone: req.query.phone
+            user_id: user_id
         })
+        console.log(shop)
         res.status(200).send(new Response(
             true,
             "thanh cong",
@@ -32,15 +35,16 @@ async function updateShopInfo(req, res) {
     if (!req.body) {
         return THQError("Khong co du lieu")
     }
+    let user_id = userIdFromReq(req)
 
     let shop = await User.findOneAndUpdate(
         {
-            phone: req.body.phone
+            user_id: user_id
         }, 
         req.body,
         {
-            upsert: true,
-            new: true
+            upsert: false,
+            new: false
         }
     )
 

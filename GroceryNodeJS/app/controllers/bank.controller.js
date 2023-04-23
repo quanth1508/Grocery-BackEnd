@@ -7,6 +7,9 @@ import productController from "./product.controller.js";
 import productModel from "../models/product.model.js";
 import transactionModel from "../models/transaction.model.js";
 import { v4 as uuidv4 } from 'uuid'
+import secret from "../config/auth.config.js";
+import jwt from "jsonwebtoken";
+import userIdFromReq from "../helpers/user.helper.js";
 
 let vietqr = new VietQR({
     clientID: '11f4f684-3f8c-4fa8-beb2-1b65a6fa30d4',
@@ -16,6 +19,7 @@ let vietqr = new VietQR({
 async function createMyBanks(req, res) {
     try {
         let bank = req.body
+        let user_id = userIdFromReq(req)
 
         if (!bank) {
             throw THQError("Thiếu trường thông tin")
@@ -24,7 +28,8 @@ async function createMyBanks(req, res) {
         await bankModel.findOne({
             bind: req.body.bind,
             accountNumber: req.body.accountNumber,
-            accountName: req.body.accountName
+            accountName: req.body.accountName,
+            user_id: user_id
         })
         .then( async (response) => {
             if (response) {
@@ -53,8 +58,11 @@ async function getMyBanks(req, res) {
         if (!req.query) {
             throw errorHelper.genError("Thiếu trường thông tin")
         }
+        let user_id = userIdFromReq(req)
 
-        let banks = await bankModel.find({ });
+        let banks = await bankModel.find({
+            user_id: user_id
+        });
 
         if (!banks) {
             throw errorHelper.sendError("Lấy thông tin ngân hàng thất bại")
@@ -154,6 +162,8 @@ async function payment(req, res) {
             throw THQError("Thiếu trường thông tin");
         }
 
+        let user_id = userIdFromReq(req)
+
         let productsShort = Array.isArray(req.body.products) ? req.body.products : [] 
 
         if (productsShort.length == 0) {
@@ -164,7 +174,10 @@ async function payment(req, res) {
         var quantitiesPayment = []
         for (let i = 0; i < productsShort.length; i++) {
             let id = productsShort[i].id
-            let productInDB  = await productModel.findOne( { id: id })
+            let productInDB  = await productModel.findOne( { 
+                id: id,
+                user_id: user_id
+            })
 
             if ((productInDB.sold + productsShort[i].quantity) > productInDB.quantity) {
                 throw errorHelper.genError(` Cửa hàng của bạn còn ${productInDB.quantity - productInDB.sold} SP ${productInDB.name} sẵn sàng để thanh toán. Vui lòng chọn lại số lượng phù hợp.`)
@@ -175,12 +188,13 @@ async function payment(req, res) {
 
             let updatedProduct = await productModel.findOneAndUpdate(
                 {
-                    id: id
+                    id: id,
+                    user_id: user_id
                 },
                 productInDB,
                 {
-                    upsert: true,
-                    new: true
+                    upsert: false,
+                    new: false
                 }
             )
 
@@ -193,9 +207,10 @@ async function payment(req, res) {
             id: uuidv4(),
             products: _products,
             quantities: quantitiesPayment,
-            initialCapital: initialCapital,
+            initialCapital: req.body.initialCapital,
             paymentMoney: req.body.paymentMoney,
-            discountMoney: req.body.discountMoney
+            discountMoney: req.body.discountMoney,
+            user_id: user_id
         }
 
         let dbTransaction = (await transactionModel(newTransaction).save()).toJSON()

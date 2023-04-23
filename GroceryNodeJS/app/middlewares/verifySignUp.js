@@ -14,6 +14,8 @@ async function checkDuplicateUsernameOrEmail(req, res, next) {
       res.status(400).send({ message: "Số điện thoại này đã tồn tại!" });
       return;
     }
+
+    next()
   });
 };
 
