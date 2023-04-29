@@ -18,12 +18,12 @@ let vietqr = new VietQR({
 
 async function createMyBanks(req, res) {
     try {
-        let bank = req.body
-        let user_id = userIdFromReq(req)
-
-        if (!bank) {
+        if (!req.body) {
             throw THQError("Thiếu trường thông tin")
         }
+        let user_id = userIdFromReq(req)
+        var newBank = bankModel(req.body)
+        newBank.user_id = user_id
 
         await bankModel.findOne({
             bind: req.body.bind,
@@ -35,7 +35,7 @@ async function createMyBanks(req, res) {
             if (response) {
                 throw THQError("Ngân hàng này đã tồn tại")
             }
-            let dbBank = (await bankModel(bank).save()).toJSON();
+            let dbBank = (await bankModel(newBank).save()).toJSON();
 
             if (!dbBank) {
                 throw THQError("Thêm ngân hàng thất bại.")
@@ -76,6 +76,35 @@ async function getMyBanks(req, res) {
 
     } catch(error) {
         errorHelper.sendError(res, getMyBanks, error);
+    }
+}
+
+
+async function deleteBank(req, res) {
+    try {
+        if (!req.query) {
+            throw THQError("Thiếu trường thông tin")
+        }
+
+        let user_id = userIdFromReq(req)
+
+        await bankModel.findOneAndRemove({
+            user_id: user_id,
+            _id: req.body._id
+        })
+        .then((jsonData) => {
+            res.status(200).send(new Response(
+                true,
+                "Xóa ngân hàng thành công",
+                jsonData.data
+            ))
+        })
+        .catch ((error) => {
+            errorHelper.sendError(res, getBanks, error)
+        })
+
+    } catch (error) {
+        errorHelper.sendError(res, getBanks, error)
     }
 }
 
@@ -158,30 +187,30 @@ function genQRCodeQuickLink(req, res) {
 
 async function payment(req, res) {
     try {
-        if (!req.body) {
-            throw THQError("Thiếu trường thông tin");
-        }
+        if (!req.body) { throw THQError("Thiếu trường thông tin") }
 
         let user_id = userIdFromReq(req)
 
         let productsShort = Array.isArray(req.body.products) ? req.body.products : [] 
 
-        if (productsShort.length == 0) {
-            throw THQError("Chưa có sản phẩm để thanh toán!");
-        }
+        if (productsShort.length == 0) { throw THQError("Chưa có sản phẩm để thanh toán, vui lòng nhập sản phẩm") }
 
         var _products = []
         var quantitiesPayment = []
         for (let i = 0; i < productsShort.length; i++) {
             let id = productsShort[i].id
-            let productInDB  = await productModel.findOne( { 
+            let productInDB  = await productModel.findOne({
                 id: id,
                 user_id: user_id
             })
 
             if ((productInDB.sold + productsShort[i].quantity) > productInDB.quantity) {
-                throw errorHelper.genError(` Cửa hàng của bạn còn ${productInDB.quantity - productInDB.sold} SP ${productInDB.name} sẵn sàng để thanh toán. Vui lòng chọn lại số lượng phù hợp.`)
+                let readyPaymentProduct = productInDB.quantity - productInDB.sold
+                throw errorHelper.genError(
+                    `Cửa hàng của bạn còn ${readyPaymentProduct} SP ${productInDB.name} sẵn sàng để thanh toán. Vui lòng chọn lại số lượng phù hợp.`
+                )
             }
+            
             productInDB.sold += productsShort[i].quantity
             _products[i] = productInDB
             quantitiesPayment[i] = productsShort[i].quantity
@@ -198,9 +227,7 @@ async function payment(req, res) {
                 }
             )
 
-            if (!updatedProduct) {
-                throw THQError("Cập nhật sản phẩm thất bại, vui lòng thử lại sau!")
-            }
+            if (!updatedProduct) { throw THQError("Cập nhật sản phẩm thất bại, vui lòng thử lại sau!") }
         }
 
         let newTransaction = {
@@ -215,13 +242,11 @@ async function payment(req, res) {
 
         let dbTransaction = (await transactionModel(newTransaction).save()).toJSON()
 
-        if (!dbTransaction) {
-            throw THQError("Thanh toán thành công nhưng tạo giao dịch thất bại!")
-        }
+        if (!dbTransaction) { throw THQError("Thanh toán thất bại!") }
         
         res.status(200).send(new Response(
             true,
-            "Thành công",
+            "Thanh toán thành công!",
             dbTransaction
         ))
 
@@ -235,6 +260,7 @@ export default {
     createMyBanks,
     getMyBanks,
     getBanks,
+    deleteBank,
     genQRCodeBase64,
     genQRCodeQuickLink,
     payment

@@ -12,44 +12,34 @@ import { v4 as uuidv4 } from 'uuid'
 import errorHelper from "../helpers/error.helper.js";
 import secret from "../config/auth.config.js";
 import userIdFromReq from "../helpers/user.helper.js";
+import productModel from "../models/product.model.js";
 
 async function createProduct(req, res) {
-        try {
-            if (!req.body) {
-                throw THQError("Thiếu trường thông tin!")
-            } 
+    try {
+        if (!req.body) { throw THQError("Thiếu trường thông tin!") } 
 
-            await Product.findOne(
-                {
-                    barCode: req.body.barCode
-                }
-            )
-            .then(async response => {
-                var hsd = new dayjs(req.body.hsd);
+        await Product.findOne({ barCode: req.body.barCode })
+        .then(async response => {
+            let hsd = new dayjs(req.body.hsd);
                 let dayCurrent = new Date()
                 let expiredMilliseconds = hsd.toDate().getTime() - dayCurrent.getTime()
                 let user_id = userIdFromReq(req) 
 
-                var product = req.body
+                var product = new productModel(req.body)
                 product.id = uuidv4()
                 product.hsd = hsd
                 product.expiredMilliseconds = expiredMilliseconds
                 product.user_id = user_id
+                
+                const newProduct = await product.save()
 
-                product.save((error, product) => {
-                    if (error) {
-                        res.status(500).send({
-                            success: false,
-                            message: error
-                        });
-                        return;
-                    }
-
-                    res.status(200).send({
-                        success: true,
-                        message: "Tạo sản phẩm thành công"
-                    });
-                })
+                if (!newProduct) { throw THQError("Tạo sản phẩm thất bại") }
+                
+                res.status(200).send({
+                    success: true,
+                    message: "Tạo sản phẩm thành công".
+                    newProduct
+                });
             })
             .catch( error => {
                 if (error instanceof THQError) {
@@ -60,17 +50,16 @@ async function createProduct(req, res) {
                     ))
                     return
                 }
-
                 res.send(new Response(
                     false,
                     "Mã vạch sản phẩm đã tồn tại vui lòng tìm kiếm kiểm tra và chỉnh sửa",
                     null
                 ))
             })
-        } catch (error) {
-            errorHelper.sendError(res, createProduct, error)
-        }
-};
+    } catch (error) {
+        errorHelper.sendError(res, createProduct, error)
+    }
+}
 
 async function getListProduct(req, res) {
     try {
@@ -78,13 +67,14 @@ async function getListProduct(req, res) {
         let objFilter = {
             user_id: user_id
         }
-        let produts = await (await Product.find(objFilter)).filter(function(product) {
-            return product.id != ""
-        })
+        let objSort = {
+            createdAt: -1
+        }
+        let products = await Product.find(objFilter).sort(objSort)
 
         res.status(200).send({
             success: true,
-            data: produts
+            data: products
         })
     } catch (error) {
         errorHelper.sendError(res, getListProduct, error)
@@ -102,6 +92,9 @@ async function getListProductSearch(req, res) {
             },
             user_id: user_id
         })
+        .sort({
+            createdAt: -1
+        })
 
         let resultBarcode = await Product.find({
             barCode: {
@@ -109,15 +102,15 @@ async function getListProductSearch(req, res) {
             },
             user_id: user_id
         })
+        .sort({
+            createdAt: -1
+        })
 
         var items = [...new Set(resultName.concat(resultBarcode))]
         const keys = ['id', 'barCode']
         const filteredData = items.filter((value, index, self) => 
             self.findIndex(v => keys.every(k => v[k] === value[k])) === index
         )
-        .filter(function(product) {
-            return product.id != ""
-        })
 
         res.status(200).send(new Response(
             true,
@@ -203,7 +196,9 @@ async function findProduct(req, res) {
                 barCode: req.query.barCode,
                 user_id: user_id
             }
-        )
+        ).sort({
+            createdAt: -1
+        })
 
         if (!product) {
             res.send(new Response(

@@ -23,6 +23,12 @@ bankRoutes.get(
 )
 
 bankRoutes.post(
+    "/api/v1/payment/delete-bank",
+    [authJwt.verifyToken],
+    vietqrController.deleteBank
+)
+
+bankRoutes.post(
     "/api/v1/payment/genQRCodeBase64",
     [authJwt.verifyToken],
     vietqrController.genQRCodeBase64

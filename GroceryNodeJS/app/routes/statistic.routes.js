@@ -12,13 +12,13 @@ statisticRoutes.get(
 )
 
 statisticRoutes.get(
-    "/api/v1/statistic/capitalAndRevenue",
+    "/api/v1/statistic/capital-and-revenue",
     [authJwt.verifyToken],
     statisticController.getCapitalAndRevenue
 )
 
 statisticRoutes.get(
-    "/api/v1/statistic/numberOfTransaction",
+    "/api/v1/statistic/number-of-transaction",
     [authJwt.verifyToken],
     statisticController.getNumberOfTransaction
 )
